@@ -2,7 +2,10 @@ FROM ubuntu:latest
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends nginx unzip curl ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /var/lib/nginx/body \
+    && chown -R www-data:www-data /var/lib/nginx \
+    && chmod -R 755 /var/lib/nginx
 
 RUN echo "daemon off;" >> /etc/nginx/nginx.conf
 
