@@ -1,11 +1,12 @@
 FROM ubuntu:latest
-USER root
+
 RUN apt-get update \
     && apt-get install -y --no-install-recommends nginx unzip curl ca-certificates \
-    && rm -rf /var/lib/apt/lists/* \
-    && mkdir -p /var/lib/nginx/body \
-    && chown -R www-data:www-data /var/lib/nginx \
-    && chmod -R 755 /var/lib/nginx
+    && rm -rf /var/lib/apt/lists/*
+
+RUN sed -i 's/user www-data;/worker_processes 1;\nuser www-data;/' /etc/nginx/nginx.conf \
+    && sed -i 's/# server_tokens off;/server_tokens off;/' /etc/nginx/nginx.conf \
+    && sed -i 's|/var/lib/nginx/body|/tmp/nginx|g' /etc/nginx/nginx.conf
 
 RUN echo "daemon off;" >> /etc/nginx/nginx.conf
 
