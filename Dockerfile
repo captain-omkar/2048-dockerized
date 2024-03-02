@@ -1,4 +1,16 @@
 FROM ubuntu:latest
+ARG UID
+ARG GID
+
+# Update the package list, install sudo, create a non-root user, and grant password-less sudo permissions
+RUN apt update && \
+    apt install -y sudo && \
+    addgroup --gid $GID nonroot && \
+    adduser --uid $UID --gid $GID --disabled-password --gecos "" nonroot && \
+    echo 'nonroot ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+
+# Set the non-root user as the default user
+USER nonroot
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends nginx unzip curl ca-certificates \
