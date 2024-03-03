@@ -9,7 +9,10 @@ RUN apt-get update \
 RUN groupadd -r nginx && useradd -r -g nginx nginx
 
 # Adjust NGINX configuration
-RUN echo "daemon off;" >> /etc/nginx/nginx.conf
+RUN sed -i 's/^user/#user/' /etc/nginx/nginx.conf \
+    && sed -i 's/^daemon//' /etc/nginx/nginx.conf \
+    && echo "daemon off;" >> /etc/nginx/nginx.conf
+
 
 # Set up NGINX application
 WORKDIR /var/www/html/
