@@ -22,10 +22,9 @@ RUN groupadd -r nginx && useradd -r -g nginx nginx
 #     && touch /var/log/nginx/error.log \
 #     && chown -R www-data:www-data /var/log/nginx
 
-RUN chown -R nginx:nginx /app && chmod -R 755 /app && \
-        chown -R nginx:nginx /var/cache/nginx && \
-        chown -R nginx:nginx /var/log/nginx && \
-        chown -R nginx:nginx /etc/nginx/conf.d
+RUN chown -R nginx:nginx /var/cache/nginx && \
+    chown -R nginx:nginx /var/log/nginx && \
+    chown -R nginx:nginx /etc/nginx/conf.d
 RUN touch /var/run/nginx.pid && \
         chown -R nginx:nginx /var/run/nginx.pid
 
