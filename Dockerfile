@@ -11,7 +11,9 @@ RUN groupadd -r nginx && useradd -r -g nginx nginx
 # Adjust NGINX configuration
 RUN sed -i 's/^user/#user/' /etc/nginx/nginx.conf \
     && sed -i 's/^daemon//' /etc/nginx/nginx.conf \
-    && echo "daemon off;" >> /etc/nginx/nginx.conf
+    && echo "daemon off;" >> /etc/nginx/nginx.conf \
+    && mkdir -p /var/log/nginx \
+    && chown -R nginx:nginx /var/log/nginx
 
 
 # Set up NGINX application
