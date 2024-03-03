@@ -1,29 +1,32 @@
 FROM ubuntu:latest
-ARG UID
-ARG GID
 
-# Update the package list, install sudo, create a non-root user, and grant password-less sudo permissions
-RUN apt update && \
-    apt install -y sudo && \
-    addgroup --gid $GID nonroot && \
-    adduser --uid $UID --gid $GID --disabled-password --gecos "" nonroot && \
-    echo 'nonroot ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
-
-# Set the non-root user as the default user
-USER nonroot
-
+# Install NGINX and other dependencies
 RUN apt-get update \
     && apt-get install -y --no-install-recommends nginx unzip curl ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
+# Create a non-root user and group for NGINX
+RUN groupadd -r nginx && useradd -r -g nginx nginx
+
+# Adjust NGINX configuration
 RUN echo "daemon off;" >> /etc/nginx/nginx.conf
 
+# Set up NGINX application
 WORKDIR /var/www/html/
+RUN curl -o master.zip -L https://codeload.github.com/gabrielecirulli/2048/zip/master \
+    && unzip master.zip && mv 2048-master/* . && rm -rf 2048-master master.zip
 
-RUN curl -o master.zip -L https://codeload.github.com/gabrielecirulli/2048/zip/master
+# Set proper permissions for NGINX directories
+RUN chown -R nginx:nginx /var/www/html \
+    && chown -R nginx:nginx /var/lib/nginx \
+    && chmod -R 777 /var/www/html \
+    && chmod -R 777 /var/lib/nginx
 
-RUN unzip master.zip && mv 2048-master/* . && rm -rf 2048-master master.zip
-
+# Expose port 8080
 EXPOSE 80
 
-CMD ["/usr/sbin/nginx", "-c", "/etc/nginx/nginx.conf"]
+# Run NGINX as the non-root user
+USER nginx
+
+# Run NGINX
+CMD ["nginx", "-g", "daemon off;"]
