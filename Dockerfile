@@ -35,4 +35,4 @@ EXPOSE 80
 USER nginx
 
 # Run NGINX
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["/usr/sbin/nginx", "-c", "/etc/nginx/nginx.conf"]
