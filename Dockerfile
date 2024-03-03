@@ -1,59 +1,37 @@
-FROM rockylinux:latest
-RUN yum install -y epel-release && \
-    yum install -y nginx
+FROM ubuntu:latest
+
+ARG USERNAME=user-name-goes-here
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+# Create the user
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
+    #
+    # [Optional] Add sudo support. Omit if you don't need to install software after connecting.
+    && apt-get update \
+    && apt-get install -y sudo \
+    && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
+    && chmod 0440 /etc/sudoers.d/$USERNAME
+
+# ********************************************************
+# * Anything else you want to do like clean up goes here *
+# ********************************************************
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends nginx unzip curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN echo "daemon off;" >> /etc/nginx/nginx.conf
 
 WORKDIR /var/www/html/
 
 RUN curl -o master.zip -L https://codeload.github.com/gabrielecirulli/2048/zip/master
 
-COPY nginx.conf /etc/nginx/nginx.conf
+RUN unzip master.zip && mv 2048-master/* . && rm -rf 2048-master master.zip
 
-CMD /usr/sbin/nginx -g 'daemon off;'
+EXPOSE 80
 
-# FROM ubuntu:latest
+# [Optional] Set the default user. Omit if you want to keep the default as root.
+USER $USERNAME
 
-# # Install NGINX and other dependencies
-# RUN apt-get update \
-#     && apt-get install -y --no-install-recommends nginx unzip curl ca-certificates \
-#     && rm -rf /var/lib/apt/lists/*
-
-# # Create a non-root user and group for NGINX
-# RUN groupadd -r nginx && useradd -r -g nginx nginx
-
-# # Adjust NGINX configuration
-# RUN sed -i 's/^user/#user/' /etc/nginx/nginx.conf 
-#     # && sed -i 's/daemon/##daemon/' /etc/nginx/nginx.conf \
-#     # && echo "daemon off;" >> /etc/nginx/nginx.conf
-#     # && mkdir -p /var/log/nginx \
-#     # && touch /var/log/nginx/error.log \
-#     # && chown -R nginx:nginx /var/log/nginx \
-#     # && chmod -R 755 /var/log/nginx
-
-# RUN rm -rf /var/log/nginx \
-#     && mkdir -p /var/log/nginx \
-#     && chown -R www-data:www-data /var/log/nginx
-
-# RUN chown -R nginx:nginx /etc/nginx/conf.d
-# RUN touch /var/run/nginx.pid && \
-#         chown -R nginx:nginx /var/run/nginx.pid
-
-
-# # Set up NGINX application
-# WORKDIR /var/www/html/
-# RUN curl -o master.zip -L https://codeload.github.com/gabrielecirulli/2048/zip/master \
-#     && unzip master.zip && mv 2048-master/* . && rm -rf 2048-master master.zip
-
-# # Set proper permissions for NGINX directories
-# RUN chown -R nginx:nginx /var/www/html \
-#     && chown -R nginx:nginx /var/lib/nginx \
-#     && chmod -R 777 /var/www/html \
-#     && chmod -R 777 /var/lib/nginx
-
-# # Expose port 8080
-# EXPOSE 80
-
-# # Run NGINX as the non-root user
-# USER nginx
-
-# # Run NGINX
-# CMD ["nginx", "-g", "daemon off;"]
+CMD ["/usr/sbin/nginx", "-c", "/etc/nginx/nginx.conf"]
