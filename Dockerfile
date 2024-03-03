@@ -11,11 +11,17 @@ RUN groupadd -r nginx && useradd -r -g nginx nginx
 # Adjust NGINX configuration
 RUN sed -i 's/^user/#user/' /etc/nginx/nginx.conf \
     && sed -i 's/daemon/##daemon/' /etc/nginx/nginx.conf \
-    && echo "daemon off;" >> /etc/nginx/nginx.conf \
+    && echo "daemon off;" >> /etc/nginx/nginx.conf
+    # && mkdir -p /var/log/nginx \
+    # && touch /var/log/nginx/error.log \
+    # && chown -R nginx:nginx /var/log/nginx \
+    # && chmod -R 755 /var/log/nginx
+
+RUN rm -rf /var/log/nginx \
     && mkdir -p /var/log/nginx \
     && touch /var/log/nginx/error.log \
-    && chown -R nginx:nginx /var/log/nginx \
-    && chmod -R 755 /var/log/nginx
+    && chown -R www-data:www-data /var/log/nginx
+
 
 # Set up NGINX application
 WORKDIR /var/www/html/
