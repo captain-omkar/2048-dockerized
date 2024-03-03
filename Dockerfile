@@ -9,9 +9,9 @@ RUN apt-get update \
 RUN groupadd -r nginx && useradd -r -g nginx nginx
 
 # Adjust NGINX configuration
-RUN sed -i 's/^user/#user/' /etc/nginx/nginx.conf \
-    && sed -i 's/daemon/##daemon/' /etc/nginx/nginx.conf \
-    && echo "daemon off;" >> /etc/nginx/nginx.conf
+RUN sed -i 's/^user/#user/' /etc/nginx/nginx.conf 
+    # && sed -i 's/daemon/##daemon/' /etc/nginx/nginx.conf \
+    # && echo "daemon off;" >> /etc/nginx/nginx.conf
     # && mkdir -p /var/log/nginx \
     # && touch /var/log/nginx/error.log \
     # && chown -R nginx:nginx /var/log/nginx \
@@ -19,11 +19,9 @@ RUN sed -i 's/^user/#user/' /etc/nginx/nginx.conf \
 
 RUN rm -rf /var/log/nginx \
     && mkdir -p /var/log/nginx \
-    && touch /var/log/nginx/error.log \
     && chown -R www-data:www-data /var/log/nginx
 
-RUN chown -R nginx:nginx /var/log/nginx && \
-    chown -R nginx:nginx /etc/nginx/conf.d
+RUN chown -R nginx:nginx /etc/nginx/conf.d
 RUN touch /var/run/nginx.pid && \
         chown -R nginx:nginx /var/run/nginx.pid
 
@@ -46,4 +44,4 @@ EXPOSE 80
 USER nginx
 
 # Run NGINX
-CMD ["/usr/sbin/nginx", "-c", "/etc/nginx/nginx.conf"]
+CMD ["nginx", "-g", "daemon off;"]
