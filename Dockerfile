@@ -1,37 +1,33 @@
-FROM ubuntu:latest
-
-ARG USERNAME=user-name-goes-here
-ARG USER_UID=1000
-ARG USER_GID=$USER_UID
-
-# Create the user
-RUN groupadd --gid $USER_GID $USERNAME \
-    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
-    #
-    # [Optional] Add sudo support. Omit if you don't need to install software after connecting.
-    && apt-get update \
-    && apt-get install -y sudo \
-    && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
-    && chmod 0440 /etc/sudoers.d/$USERNAME
-
-# ********************************************************
-# * Anything else you want to do like clean up goes here *
-# ********************************************************
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends nginx unzip curl ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
-
+# Use a minimal base image suitable for running in OpenShift
+FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
+ 
+# Set labels for OpenShift (optional but recommended)
+LABEL maintainer="Your Name" \
+      io.openshift.expose-services="80:http" \
+      io.openshift.tags="nginx"
+ 
+# Install required packages
+RUN microdnf update -y && \
+    microdnf install -y nginx unzip curl ca-certificates && \
+    microdnf clean all
+ 
+# Set Nginx to run in the foreground
 RUN echo "daemon off;" >> /etc/nginx/nginx.conf
-
+ 
+# Set the working directory
 WORKDIR /var/www/html/
-
-RUN curl -o master.zip -L https://codeload.github.com/gabrielecirulli/2048/zip/master
-
-RUN unzip master.zip && mv 2048-master/* . && rm -rf 2048-master master.zip
-
+ 
+# Download and extract the 2048 game
+RUN curl -o master.zip -L https://codeload.github.com/gabrielecirulli/2048/zip/master && \
+    unzip master.zip && \
+    mv 2048-master/* . && \
+    rm -rf 2048-master master.zip
+ 
+# Expose the port
 EXPOSE 80
-
-# [Optional] Set the default user. Omit if you want to keep the default as root.
-USER $USERNAME
-
-CMD ["/usr/sbin/nginx", "-c", "/etc/nginx/nginx.conf"]
+ 
+# Use the "nginx" user for non-root execution
+USER nginx
+ 
+# Start Nginx
+CMD ["nginx", "-c", "/etc/nginx/nginx.conf"]
